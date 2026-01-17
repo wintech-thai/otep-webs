@@ -90,10 +90,10 @@ export const LoginView = () => {
 
         <button
           type="button"
-          className="underline text-otep-primary text-left cursor-pointer text-sm mt-2"
+          className="underline text-otep-primary text-left cursor-pointer text-sm mt-2 text-pink-500"
           onClick={() => toast.info("Forgot Password feature coming soon")}
         >
-          Forgot Password?
+          Forgot Password
         </button>
       </form>
     </AuthLayout>
