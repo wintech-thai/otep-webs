@@ -69,7 +69,7 @@ export const LoginView = () => {
       
       // Delay Redirect 1 วินาที
       setTimeout(() => {
-        router.replace("/dashboard"); 
+        router.push("/dashboard"); 
       }, 1000);
     },
     onError: (error) => {
