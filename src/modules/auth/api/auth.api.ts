@@ -1,3 +1,4 @@
+// src/modules/auth/api/auth.api.ts
 import Cookies from "js-cookie";
 import { apiClient } from "@/lib/axios";
 import { LoginSchemaType } from "../schema/login.schema";
@@ -8,28 +9,28 @@ export const authApi = {
         username: data.username, 
         password: data.password 
     });
-    console.log("🔥 API Response:", response.data);
 
-    // (API อาจตอบ 200 แต่ Status เป็น Error)
-    const { Status, Data, Message } = response.data;
+    console.log("🔥 SERVER RESPONSE:", response.data); 
+    const { status, message, token } = response.data;
 
-    if (Status === "OK" || Status === "Success") {
-        const token = Data?.token || Data?.access_token;
+    if (status === "Success" || status === "OK") {
         
-        if (token) {
-            // 3. บันทึก Cookie 
-            Cookies.set("auth_token", token, { expires: 1 });
+        const accessToken = token?.access_token;
+
+        if (accessToken) {
+            Cookies.set("auth_token", accessToken, { expires: 1 });
             
-            if (Data?.user) {
-                localStorage.setItem("user_info", JSON.stringify(Data.user));
+            if (token?.userName) {
+                localStorage.setItem("user_info", JSON.stringify({ username: token.userName }));
             }
 
             return response.data;
         } else {
-            throw new Error("Token not found in response");
+            throw new Error("Login success but no access_token found.");
         }
+
     } else {
-        throw new Error(Message || "Login failed");
+        throw new Error(message || "Login failed");
     }
   },
 
