@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { User, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/providers/language-provider";
+import { authApi } from "@/modules/auth/api/auth.api";
 
 export const Header = () => {
   const { language, setLanguage } = useLanguage();
@@ -12,6 +13,8 @@ export const Header = () => {
   const langRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
+
+  // Click Outside Listener
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (langRef.current && !langRef.current.contains(event.target as Node)) {
@@ -25,11 +28,19 @@ export const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleLogout = async () => {
+    authApi.logout.api("temp").catch(err => console.warn("Backend logout ignored:", err));
+    await authApi.logout.clearCookies(); 
+    localStorage.removeItem("user_info");
+    window.location.replace("/login");
+  };
+
   return (
     <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-end px-6 fixed top-0 right-0 w-[calc(100%-260px)] z-20">
       
       <div className="flex items-center gap-4">
         
+        {/* Language Selector */}
         <div className="relative" ref={langRef}>
           <button 
             onClick={() => setIsLangOpen(!isLangOpen)}
@@ -75,24 +86,30 @@ export const Header = () => {
         {/* Divider */}
         <div className="h-6 w-[1px] bg-slate-200 mx-1"></div>
 
+        {/* Profile Dropdown */}
         <div className="relative" ref={profileRef}>
-            {/* ปุ่ม Avatar */}
             <button 
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center transition-all outline-none",
-                    "bg-[#e0f2f1] border border-[#b2dfdb] text-[#00897b]",
-                    "hover:shadow-md hover:scale-105 active:scale-95",
-                    isProfileOpen && "ring-2 ring-offset-2 ring-[#b2dfdb]"
+                    "flex items-center gap-2 p-1 pr-2 rounded-full transition-all outline-none border border-transparent",
+                    "hover:bg-slate-50 hover:border-slate-200",
+                    isProfileOpen && "bg-slate-50 border-slate-200"
                 )}
             >
-                <User size={20} />
+                <div className={cn(
+                    "w-9 h-9 rounded-full flex items-center justify-center transition-all",
+                    "bg-[#e0f2f1] border border-[#b2dfdb] text-[#00897b]"
+                )}>
+                    <User size={18} />
+                </div>
+                <ChevronDown size={14} className={cn("text-slate-400 transition-transform duration-200", isProfileOpen && "rotate-180")} />
             </button>
 
             {/* เมนู Profile Dropdown */}
             {isProfileOpen && (
-                <div className="absolute top-full right-0 mt-3 w-[200px] bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 py-2 animate-in fade-in zoom-in-95 duration-200 z-50 overflow-hidden">
+                <div className="absolute top-full right-0 mt-2 w-[200px] bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 py-2 animate-in fade-in zoom-in-95 duration-200 z-50 overflow-hidden">
                     
+
                     <div className="px-1 space-y-0.5">
                         <MenuItem label="Profile" onClick={() => console.log("Go to Profile")} />
                         <MenuItem label="Change Password" onClick={() => console.log("Go to Change Password")} />
@@ -101,7 +118,7 @@ export const Header = () => {
                     <div className="h-[1px] bg-slate-100 my-2 mx-0"></div>
 
                     <div className="px-1">
-                        <MenuItem label="Logout" onClick={() => console.log("Logout")} isDanger />
+                        <MenuItem label="Logout" onClick={handleLogout} isDanger />
                     </div>
                 </div>
             )}
@@ -137,7 +154,7 @@ const MenuItem = ({ label, onClick, isDanger }: { label: string, onClick: () => 
     <button 
         onClick={onClick}
         className={cn(
-            "w-full text-left px-4 py-2.5 text-[14px] transition-colors rounded-lg mx-auto block w-[96%]",
+            "w-full text-left px-4 py-2 text-[14px] transition-colors rounded-lg mx-auto block w-[96%]",
             isDanger 
                 ? "text-red-600 hover:bg-red-50 font-medium" 
                 : "text-slate-700 hover:bg-slate-50 font-medium"
