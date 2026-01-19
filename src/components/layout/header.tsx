@@ -60,22 +60,22 @@ export const Header = () => {
           {isLangOpen && (
             <div className="absolute top-full right-0 mt-2 w-[180px] bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-slate-100 p-1.5 animate-in fade-in zoom-in-95 duration-200 z-50">
                 <LanguageItem 
-                    code="TH" 
-                    label="ภาษาไทย" 
-                    subLabel="Thai" 
-                    isActive={language === "TH"} 
-                    onClick={() => { 
-                        setLanguage("TH"); 
-                        setIsLangOpen(false); 
-                    }} 
-                />
-                <LanguageItem 
                     code="US" 
                     label="English" 
                     subLabel="English" 
                     isActive={language === "EN"} 
                     onClick={() => { 
                         setLanguage("EN"); 
+                        setIsLangOpen(false); 
+                    }} 
+                />
+                <LanguageItem 
+                    code="TH" 
+                    label="ภาษาไทย" 
+                    subLabel="Thai" 
+                    isActive={language === "TH"} 
+                    onClick={() => { 
+                        setLanguage("TH"); 
                         setIsLangOpen(false); 
                     }} 
                 />
