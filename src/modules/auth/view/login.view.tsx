@@ -19,6 +19,7 @@ export const LoginView = () => {
   const router = useRouter();
 
   useEffect(() => {
+    // Clear ค่าเก่าทิ้งเมื่อเข้าหน้า Login
     Cookies.remove("auth_token");
     localStorage.removeItem("user_info");
     localStorage.removeItem("current_org");
@@ -41,9 +42,30 @@ export const LoginView = () => {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginSchemaType) => {
+        // 1. ยิง Login
         const loginResponse = await authApi.login(data);
         const accessToken = loginResponse?.token?.access_token;
 
+        // 🔥🔥🔥 [จุดที่เพิ่ม] บันทึก Token ลง Cookie & Header 🔥🔥🔥
+        if (accessToken) {
+            // 1. เก็บลง Cookie (เพื่อให้ Middleware หรือ Reload หน้าเว็บแล้วยังจำได้)
+            Cookies.set("auth_token", accessToken, { expires: 1 }); // หมดอายุใน 1 วัน
+            
+            // 2. ยัดใส่ Header ของ Axios ทันที (เพื่อให้ request ถัดไปใช้งานได้เลยไม่ต้องรอ reload)
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            
+            console.log("🔑 Token saved successfully!");
+        }
+        // 🔥🔥🔥 จบจุดที่เพิ่ม 🔥🔥🔥
+
+        // 2. บันทึก User Info (เพื่อให้หน้า Profile รู้ว่าใคร)
+        const userInfo = {
+            username: data.username, 
+        };
+        localStorage.setItem("user_info", JSON.stringify(userInfo));
+        console.log("✅ Saved user_info:", userInfo);
+
+        // 3. ดึง Org (Logic เดิม)
         const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error("Request timed out")), 2000)
         );
