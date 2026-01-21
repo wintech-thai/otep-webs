@@ -34,7 +34,13 @@ export const dictionary = {
     status: "Status",
     description: "Description",
     tags: "Tags",
-    role: "Role", // Common for Users & Audit Log
+    role: "Role",
+    
+    // เพิ่มส่วน Common Buttons
+    save: "Save",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    loading: "Loading...",
 
     // --- Custom Role Page ---
     roleName: "Role Name",
@@ -42,8 +48,8 @@ export const dictionary = {
 
     // --- API Keys Page ---
     keyName: "Key Name",
-    customRoleTh: "Custom Role", // ชื่อหัวตาราง
-    rolesTh: "Roles", // ชื่อหัวตาราง
+    customRoleTh: "Custom Role",
+    rolesTh: "Roles",
     searchApiKeyPlaceholder: "Search API keys...",
 
     // --- Users Page ---
@@ -59,6 +65,32 @@ export const dictionary = {
     ipAddress: "IP Address",
     searchValuePlaceholder: "Search Value",
     dateRangePlaceholder: "Select Date Range",
+
+    changePasswordTitle: "Change Password",
+    changePasswordDesc: "Please update your password to continue.",
+    currentPassword: "Current Password",
+    newPassword: "New Password",
+    confirmPassword: "Confirm New Password",
+    msgPasswordSuccess: "Password changed successfully",
+    msgPasswordError: "Failed to change password",
+    descChangePassword: "Please update your password to continue.", 
+
+    updateProfileTitle: "Update Profile",
+    firstName: "First Name",
+    lastName: "Last Name",
+    phoneNumber: "Phone Number",
+    secondaryEmail: "Secondary Email",
+    msgProfileSuccess: "Profile updated successfully",
+    msgProfileError: "Failed to save profile data",
+    
+    // Placeholders
+    phFirstName: "First Name",
+    phLastName: "Last Name",
+    phPhone: "e.g. 66812345678",
+    phSecondaryEmail: "Backup Email (Optional)",
+
+    menuProfile: "Profile",
+    menuLogout: "Logout",
   },
   TH: {
     // --- Layout (Sidebar & Header) ---
@@ -83,7 +115,7 @@ export const dictionary = {
     statActiveSessions: "เซสชันที่ใช้งานอยู่",
     statAuditLogs: "รายการ Audit Log",
 
-    // --- Common (ใช้ร่วมกันทุกหน้า) ---
+    // --- Common ---
     fullTextSearch: "ค้นหาแบบเต็ม",
     search: "ค้นหา",
     add: "เพิ่ม",
@@ -94,6 +126,12 @@ export const dictionary = {
     description: "คำอธิบาย",
     tags: "แท็ก",
     role: "บทบาท",
+
+    // Common Buttons
+    save: "บันทึก",
+    cancel: "ยกเลิก",
+    confirm: "ยืนยัน",
+    loading: "กำลังโหลด...",
 
     // --- Custom Role Page ---
     roleName: "ชื่อบทบาท",
@@ -118,5 +156,31 @@ export const dictionary = {
     ipAddress: "ที่อยู่ IP",
     searchValuePlaceholder: "ค้นหาค่า...",
     dateRangePlaceholder: "เลือกช่วงเวลา",
+
+    changePasswordTitle: "เปลี่ยนรหัสผ่าน",
+    changePasswordDesc: "กรุณากรอกรหัสผ่านใหม่เพื่อดำเนินการต่อ",
+    currentPassword: "รหัสผ่านปัจจุบัน",
+    newPassword: "รหัสผ่านใหม่",
+    confirmPassword: "ยืนยันรหัสผ่านใหม่",
+    msgPasswordSuccess: "เปลี่ยนรหัสผ่านสำเร็จ",
+    msgPasswordError: "เปลี่ยนรหัสผ่านไม่สำเร็จ",
+    descChangePassword: "กรุณากรอกรหัสผ่านใหม่เพื่อดำเนินการต่อ",
+
+    updateProfileTitle: "แก้ไขข้อมูลส่วนตัว",
+    firstName: "ชื่อจริง",
+    lastName: "นามสกุล",
+    phoneNumber: "เบอร์โทรศัพท์",
+    secondaryEmail: "อีเมลสำรอง",
+    msgProfileSuccess: "บันทึกข้อมูลสำเร็จ",
+    msgProfileError: "บันทึกข้อมูลไม่สำเร็จ",
+
+    // Placeholders
+    phFirstName: "ชื่อจริง",
+    phLastName: "นามสกุล",
+    phPhone: "เช่น 66812345678",
+    phSecondaryEmail: "อีเมลสำรอง (ถ้ามี)",
+
+    menuProfile: "ข้อมูลส่วนตัว",
+    menuLogout: "ออกจากระบบ",
   }
 };

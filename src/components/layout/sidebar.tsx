@@ -19,7 +19,9 @@ export const Sidebar = () => {
   const { t } = useLanguage();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[260px] bg-white border-r border-slate-100 flex flex-col z-30">
+    // ✅ แก้ไข: ลบ hidden, md:flex, fixed และ w-[260px] ออกจากตรงนี้
+    // ใช้ h-full และ w-full เพื่อให้มันขยายเต็มพื้นที่ตัวที่มาหุ้มมัน (Container)
+    <div className="flex flex-col h-full w-full bg-white border-r border-slate-100">
       {/* 1. Sidebar Header (Logo) */}
       <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-50/50">
         <div className="relative w-8 h-8 rounded-full overflow-hidden border border-slate-100">
@@ -60,7 +62,7 @@ export const Sidebar = () => {
                     
                     <Link href="/dashboard/administration/custom-role">
                         <SidebarItem 
-                            label={t.customRole} // ใช้ t.customRole
+                            label={t.customRole} 
                             isSubmenu 
                             active={pathname === "/dashboard/administration/custom-role"} 
                         />
@@ -68,7 +70,7 @@ export const Sidebar = () => {
 
                     <Link href="/dashboard/administration/api-keys">
                         <SidebarItem 
-                            label={t.apiKeys} // ใช้ t.apiKeys
+                            label={t.apiKeys} 
                             isSubmenu
                             active={pathname === "/dashboard/administration/api-keys"} 
                         />
@@ -76,7 +78,7 @@ export const Sidebar = () => {
 
                     <Link href="/dashboard/administration/users">
                         <SidebarItem 
-                            label={t.users} // ใช้ t.users
+                            label={t.users} 
                             isSubmenu
                             active={pathname === "/dashboard/administration/users"} 
                         />
@@ -84,7 +86,7 @@ export const Sidebar = () => {
 
                     <Link href="/dashboard/administration/audit-log">
                         <SidebarItem 
-                            label={t.auditLog} // ใช้ t.auditLog
+                            label={t.auditLog} 
                             isSubmenu
                             active={pathname === "/dashboard/administration/audit-log"} 
                         />
@@ -101,7 +103,7 @@ export const Sidebar = () => {
             {t.copyright} 
         </p>
       </div>
-    </aside>
+    </div>
   );
 };
 

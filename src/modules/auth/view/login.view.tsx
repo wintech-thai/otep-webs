@@ -19,13 +19,15 @@ export const LoginView = () => {
   const router = useRouter();
 
   useEffect(() => {
+    // ล้างข้อมูลเก่าทิ้งเมื่อเปิดหน้า Login เพื่อป้องกันข้อมูลข้าม Session
     Cookies.remove("auth_token");
+    Cookies.remove("refresh_token");
     localStorage.removeItem("user_info");
     localStorage.removeItem("current_org");
     
     delete apiClient.defaults.headers.common['Authorization'];
     
-    console.log("Session cleaned up!"); 
+    console.log("🧹 Session cleaned up!"); 
   }, []);
 
   const form = useForm<LoginSchemaType>({
@@ -41,8 +43,20 @@ export const LoginView = () => {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginSchemaType) => {
+        // 1. เรียก API Login
         const loginResponse = await authApi.login(data);
         const accessToken = loginResponse?.token?.access_token;
+
+        if (accessToken) {
+            Cookies.set("auth_token", accessToken, { expires: 1 });
+            
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            
+            console.log("🔑 Token saved to Cookies and Headers.");
+        }
+
+        const userInfo = { username: data.username };
+        localStorage.setItem("user_info", JSON.stringify(userInfo));
 
         const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error("Request timed out")), 2000)
@@ -54,11 +68,17 @@ export const LoginView = () => {
                 timeoutPromise
             ]);
             
-            const targetOrg = (Array.isArray(orgs) && orgs.length > 0) ? orgs[0] : "default";
+            let targetOrg = "default"; // ค่า Default กรณีหาไม่เจอ
+
+            if (Array.isArray(orgs) && orgs.length > 0) {
+                targetOrg = orgs[0].orgCustomId || "default";
+            }
+            
             localStorage.setItem("current_org", targetOrg);
+            console.log("🏢 Target Org Set to:", targetOrg);
             
         } catch (e) {
-            console.warn("Using default org due to error/timeout:", e);
+            console.warn("⚠️ Using 'default' org due to error or timeout:", e);
             localStorage.setItem("current_org", "default");
         }
 
@@ -67,13 +87,12 @@ export const LoginView = () => {
     onSuccess: () => {
       toast.success("Login successful");
       
-      // Delay Redirect 1 วินาที
       setTimeout(() => {
         router.push("/dashboard"); 
       }, 1000);
     },
     onError: (error) => {
-      console.error("Login error", error);
+      console.error("❌ Login failed:", error);
       toast.error("Invalid username or password");
     },
   });
@@ -97,7 +116,7 @@ export const LoginView = () => {
               {...field}
               maxLength={20} 
               label="Username"
-              placeholder="Username"
+              placeholder="Enter your username"
               errorMessage={errors.username?.message}
             />
           )}
@@ -112,7 +131,7 @@ export const LoginView = () => {
               type="password"
               maxLength={20} 
               label="Password"
-              placeholder="Password"
+              placeholder="Enter your password"
               errorMessage={errors.password?.message}
             />
           )}
@@ -128,10 +147,10 @@ export const LoginView = () => {
 
         <button
           type="button"
-          className="underline text-otep-primary text-left cursor-pointer text-sm mt-2 text-pink-500"
+          className="underline text-otep-primary text-left cursor-pointer text-sm mt-2 text-pink-500 hover:text-pink-600 transition-colors"
           onClick={() => toast.info("Forgot Password feature coming soon")}
         >
-          Forgot Password
+          Forgot Password?
         </button>
       </form>
     </AuthLayout>
