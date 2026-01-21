@@ -1,34 +1,22 @@
-import axios from "axios";
 import Cookies from "js-cookie";
+import { apiClient } from "@/lib/axios"; 
 
-const client = axios.create({
-  baseURL: "/api-proxy", 
-  headers: { "Content-Type": "application/json" },
-  timeout: 30000 
-});
+const toBase64 = (str: string) => {
+  try { return btoa(unescape(encodeURIComponent(str))); } catch { return str; }
+};
 
 export const profileApi = {
-  // 1. ดึงข้อมูลจาก Database
   getUserByUserName: async (username: string) => {
-    const token = Cookies.get("auth_token");
-    if (!token) throw new Error("No Token");
-    const encodedToken = btoa(token);
-
     const orgId = localStorage.getItem("current_org") || "default";
 
-    return client.get(
-      `/api/OnlyUser/org/${orgId}/action/GetUserByUserName/${username}`,
-      {
-        headers: { Authorization: `Bearer ${encodedToken}` }
-      }
-    );
+    return apiClient.get(`/api/OnlyUser/org/${orgId}/action/GetUserByUserName/${username}`, {
+      headers: { Authorization: `Bearer ${toBase64(Cookies.get("auth_token") || "")}` }
+    });
   },
 
-  // 2. อัปเดตข้อมูลโปรไฟล์
   updateProfile: async (formData: any) => {
-    const token = Cookies.get("auth_token");
-    if (!token) throw new Error("No Token");
-    const encodedToken = btoa(token);
+    const token = Cookies.get("auth_token") || "";
+    const orgId = localStorage.getItem("current_org") || "default";
 
     let username = "";
     let userId = ""; 
@@ -38,18 +26,13 @@ export const profileApi = {
         userId = payload.sub || payload.id || payload.userId || ""; 
     } catch (e) { console.error(e); }
 
-    // แปลงเบอร์เป็น +66
-    let formattedPhone = formData.phoneNumber;
-    if (formattedPhone && formattedPhone.startsWith("0")) {
-        formattedPhone = "+66" + formattedPhone.substring(1);
-    }
+    const formattedPhone = formData.phoneNumber?.startsWith("0") 
+        ? "+66" + formData.phoneNumber.substring(1) 
+        : formData.phoneNumber;
 
-    const orgId = localStorage.getItem("current_org") || "default";
-
-    return client.post(
-      `/api/OnlyUser/org/${orgId}/action/UpdateUserByUserName/${username}`,
+    return apiClient.post(`/api/OnlyUser/org/${orgId}/action/UpdateUserByUserName/${username}`, 
       {
-        userId: userId,
+        userId,
         userName: username,
         userEmail: formData.email,
         name: formData.firstName,         
@@ -57,35 +40,27 @@ export const profileApi = {
         phoneNumber: formattedPhone, 
         secondaryEmail: formData.secondaryEmail,
       },
-      { headers: { Authorization: `Bearer ${encodedToken}` } }
+      { headers: { Authorization: `Bearer ${toBase64(token)}` } }
     );
   },
 
-  // 3. เปลี่ยนรหัสผ่าน (แก้ไข: ส่งเป็นข้อความปกติ ไม่ใช้ btoa)
   changePassword: async (passData: any) => {
-    const token = Cookies.get("auth_token");
-    if (!token) throw new Error("No Token");
-    
-    // Authorization Token ยังต้อง btoa เหมือนเดิมตามกฎ API
-    const encodedToken = btoa(token);
-    
+    const token = Cookies.get("auth_token") || "";
+    const orgId = localStorage.getItem("current_org") || "default";
+
     let username = "";
     try {
         const payload = JSON.parse(decodeURIComponent(escape(atob(token.split('.')[1]))));
         username = payload.preferred_username || "";
     } catch (e) { console.error(e); }
 
-    const orgId = localStorage.getItem("current_org") || "default";
-
-    return client.post(
-      `/api/OnlyUser/org/${orgId}/action/UpdatePassword`,
+    return apiClient.post(`/api/OnlyUser/org/${orgId}/action/UpdatePassword`, 
       {
         userName: username,
-        // ✅ ส่งรหัสผ่านเป็น Raw String เพื่อไม่ให้ความยาวเกิน 15 ตัวอักษร
         currentPassword: passData.oldPassword, 
         newPassword: passData.newPassword
       },
-      { headers: { Authorization: `Bearer ${encodedToken}` } }
+      { headers: { Authorization: `Bearer ${toBase64(token)}` } }
     );
   }
 };

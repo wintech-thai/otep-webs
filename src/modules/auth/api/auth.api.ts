@@ -3,6 +3,15 @@ import { apiClient } from "@/lib/axios";
 import axios from "axios";
 import { LoginSchemaType } from "../schema/login.schema";
 
+const toBase64 = (str: string) => {
+  if (!str) return "";
+  try {
+    return btoa(unescape(encodeURIComponent(str)));
+  } catch (err) {
+    return str;
+  }
+};
+
 export const authApi = {
   login: async (data: LoginSchemaType) => {
     const response = await apiClient.post("/api/Auth/org/temp/action/Login", { 
@@ -38,8 +47,10 @@ export const authApi = {
   },
 
   getAllowedOrg: async (accessToken?: string) => {
-    const config = accessToken 
-      ? { headers: { Authorization: `Bearer ${accessToken}` } }
+    const token = accessToken || Cookies.get("auth_token");
+
+    const config = token 
+      ? { headers: { Authorization: `Bearer ${toBase64(token)}` } }
       : {};
 
     const response = await apiClient.get("/api/OnlyUser/org/temp/action/GetUserAllowedOrg", config); 
