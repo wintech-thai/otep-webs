@@ -23,7 +23,7 @@ export const MobileSidebar = () => {
       </SheetTrigger>
 
       <SheetContent side="left" className="p-0 bg-white w-[260px] border-r-0">
-        <SheetTitle className="sr-only">Mobile Menu</SheetTitle> {/* ซ่อน Title ไว้สำหรับ Screen Reader */}
+        <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
         <Sidebar />
       </SheetContent>
     </Sheet>

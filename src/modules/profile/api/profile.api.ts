@@ -1,100 +1,91 @@
-import { apiClient } from "@/lib/axios";
+import axios from "axios";
 import Cookies from "js-cookie";
 
-// 🛠️ Helper: แปลง Text เป็น Base64 (ไม่ต้องตัด = ออก เพื่อให้ Backend .NET อ่านได้)
-const toBase64 = (str: string) => {
-  if (!str) return "";
-  try {
-    return btoa(str); 
-  } catch (err) {
-    return str;
-  }
-};
-
-// Helper: แกะ ID จาก Token (sub)
-const getUserIdFromToken = () => {
-    const token = Cookies.get("auth_token");
-    if (!token) return "";
-    try {
-        // บางที JWT เป็น Base64Url ต้องแปลง - เป็น + และ _ เป็น / ก่อน
-        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(atob(base64));
-        return payload.sub || ""; 
-    } catch (e) {
-        return "";
-    }
-};
-
-// Helper: ดึงข้อมูลจาก LocalStorage
-const getUserInfo = () => {
-  if (typeof window === "undefined") return {};
-  try {
-    const userStr = localStorage.getItem("user_info");
-    return JSON.parse(userStr || "{}");
-  } catch (error) {
-    return {};
-  }
-};
-
-const getCurrentOrg = () => {
-  if (typeof window === "undefined") return "temp"; 
-  const org = localStorage.getItem("current_org");
-  if (!org || org === "default") return "temp";
-  return org;
-};
+const client = axios.create({
+  baseURL: "/api-proxy", 
+  headers: { "Content-Type": "application/json" },
+  timeout: 30000 
+});
 
 export const profileApi = {
-  
-  // Update Profile
-  updateProfile: async (formData: any) => {
-    const userInfo = getUserInfo();
-    const rawUsername = userInfo.userName || userInfo.username || "";
-    const rawEmail = userInfo.email || "";
-    const rawOrgId = getCurrentOrg();
-    
-    const userId = getUserIdFromToken();
+  // 1. ดึงข้อมูลจาก Database
+  getUserByUserName: async (username: string) => {
+    const token = Cookies.get("auth_token");
+    if (!token) throw new Error("No Token");
+    const encodedToken = btoa(token);
 
-    const encodedOrg = toBase64(rawOrgId);
-    const encodedUser = toBase64(rawUsername);
+    const orgId = localStorage.getItem("current_org") || "default";
 
-    console.log(`🚀 Updating Profile...`);
-    console.log(`ID: ${userId}, User: ${rawUsername}, Org: ${rawOrgId}`);
-
-    const payload = {
-        userId: userId,              
-        userName: rawUsername,
-        userEmail: rawEmail,
-        
-        name: formData.firstName,    
-        lastName: formData.lastName,
-        
-        phoneNumber: formData.phoneNumber,
-        secondaryEmail: formData.secondaryEmail,
-        
-        phoneNumberVerified: false,      
-        secondaryEmailVerified: false,   
-        isOrgInitialUser: false          
-    };
-
-    return apiClient.post(
-        `/api/OnlyUser/org/${encodedOrg}/action/UpdateUserByUserName/${encodedUser}`, 
-        payload
+    return client.get(
+      `/api/OnlyUser/org/${orgId}/action/GetUserByUserName/${username}`,
+      {
+        headers: { Authorization: `Bearer ${encodedToken}` }
+      }
     );
   },
 
-  // Change Password
-  changePassword: async (data: any) => {
-    const userInfo = getUserInfo();
-    const rawUsername = userInfo.userName || userInfo.username || "";
-    const rawOrgId = getCurrentOrg();
-    
-    const encodedOrg = toBase64(rawOrgId);
+  // 2. อัปเดตข้อมูลโปรไฟล์
+  updateProfile: async (formData: any) => {
+    const token = Cookies.get("auth_token");
+    if (!token) throw new Error("No Token");
+    const encodedToken = btoa(token);
 
-    return apiClient.post(`/api/OnlyUser/org/${encodedOrg}/action/UpdatePassword`, {
-        username: rawUsername,
-        oldPassword: data.oldPassword,
-        newPassword: data.newPassword,
-        confirmPassword: data.newPassword
-    });
+    let username = "";
+    let userId = ""; 
+    try {
+        const payload = JSON.parse(decodeURIComponent(escape(atob(token.split('.')[1]))));
+        username = payload.preferred_username || "";
+        userId = payload.sub || payload.id || payload.userId || ""; 
+    } catch (e) { console.error(e); }
+
+    // แปลงเบอร์เป็น +66
+    let formattedPhone = formData.phoneNumber;
+    if (formattedPhone && formattedPhone.startsWith("0")) {
+        formattedPhone = "+66" + formattedPhone.substring(1);
+    }
+
+    const orgId = localStorage.getItem("current_org") || "default";
+
+    return client.post(
+      `/api/OnlyUser/org/${orgId}/action/UpdateUserByUserName/${username}`,
+      {
+        userId: userId,
+        userName: username,
+        userEmail: formData.email,
+        name: formData.firstName,         
+        lastName: formData.lastName,
+        phoneNumber: formattedPhone, 
+        secondaryEmail: formData.secondaryEmail,
+      },
+      { headers: { Authorization: `Bearer ${encodedToken}` } }
+    );
+  },
+
+  // 3. เปลี่ยนรหัสผ่าน (แก้ไข: ส่งเป็นข้อความปกติ ไม่ใช้ btoa)
+  changePassword: async (passData: any) => {
+    const token = Cookies.get("auth_token");
+    if (!token) throw new Error("No Token");
+    
+    // Authorization Token ยังต้อง btoa เหมือนเดิมตามกฎ API
+    const encodedToken = btoa(token);
+    
+    let username = "";
+    try {
+        const payload = JSON.parse(decodeURIComponent(escape(atob(token.split('.')[1]))));
+        username = payload.preferred_username || "";
+    } catch (e) { console.error(e); }
+
+    const orgId = localStorage.getItem("current_org") || "default";
+
+    return client.post(
+      `/api/OnlyUser/org/${orgId}/action/UpdatePassword`,
+      {
+        userName: username,
+        // ✅ ส่งรหัสผ่านเป็น Raw String เพื่อไม่ให้ความยาวเกิน 15 ตัวอักษร
+        currentPassword: passData.oldPassword, 
+        newPassword: passData.newPassword
+      },
+      { headers: { Authorization: `Bearer ${encodedToken}` } }
+    );
   }
 };

@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query"; 
-import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"; 
+import { toast } from "sonner"; 
 import { Loader2 } from "lucide-react";
 import Cookies from "js-cookie";
 
+import { useLanguage } from "@/providers/language-provider";
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter 
 } from "@/components/ui/dialog";
@@ -22,185 +23,116 @@ import { profileSchema, ProfileSchemaType } from "../schema/profile.schema";
 
 const parseJwt = (token: string) => {
   try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
-    return null;
-  }
+    return JSON.parse(decodeURIComponent(escape(atob(token.split('.')[1]))));
+  } catch (e) { return null; }
 };
 
-interface ProfileDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export const ProfileDialog = ({ open, onOpenChange }: ProfileDialogProps) => {
+export const ProfileDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) => {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
+
+  const currentUsername = useMemo(() => {
+    const token = Cookies.get("auth_token");
+    if (!token) return "";
+    return parseJwt(token)?.preferred_username || "";
+  }, [open]);
 
   const form = useForm<ProfileSchemaType>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      username: "",
-      email: "",
-      firstName: "",
-      lastName: "",
-      phoneNumber: "",
-      secondaryEmail: "",
-    },
+    defaultValues: { username: "", email: "", firstName: "", lastName: "", phoneNumber: "", secondaryEmail: "" },
+  });
+
+  const { data: apiResponse, isLoading: isFetching } = useQuery({
+    queryKey: ["user-profile", currentUsername],
+    queryFn: () => profileApi.getUserByUserName(currentUsername),
+    enabled: open && !!currentUsername, 
+    staleTime: 0, 
   });
 
   useEffect(() => {
-    if (open) {
-      const token = Cookies.get("auth_token");
-      
-      if (token) {
-        const decoded = parseJwt(token);
-        console.log("🔥 Decoded Token Data:", decoded);
-
-        if (decoded) {
-          form.reset({
-            username: decoded.preferred_username || "",
-            email: decoded.email || "",
-            firstName: decoded.given_name || decoded.name?.split(" ")[0] || "", 
-            lastName: decoded.family_name || decoded.name?.split(" ")[1] || "",
-            
-            phoneNumber: "", 
-            secondaryEmail: "",
-          });
-        }
-      }
+    if (apiResponse?.data?.user) {
+      const u = apiResponse.data.user;
+      form.reset({
+        username: u.userName,
+        email: u.userEmail,
+        firstName: u.name,       // ข้อมูลจริงจาก DB
+        lastName: u.lastName,    // ข้อมูลจริงจาก DB
+        phoneNumber: u.phoneNumber || "",
+        secondaryEmail: u.secondaryEmail || "",
+      });
     }
-  }, [open, form]);
+  }, [apiResponse, form]);
 
   const updateMutation = useMutation({
     mutationFn: profileApi.updateProfile,
-    onSuccess: () => {
-      toast.success("บันทึกข้อมูลสำเร็จ");
+    onSuccess: (response: any) => {
+      const data = response.data || response;
+      if (data && data.status !== "SUCCESS") {
+         toast.error(data.description || t.msgProfileError);
+         return; 
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+
+      toast.success(t.msgProfileSuccess);
       onOpenChange(false);
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "เกิดข้อผิดพลาดในการบันทึก");
+      toast.error(error?.response?.data?.description || t.msgProfileError);
     },
   });
-
-  const onSubmit = (data: ProfileSchemaType) => {
-    updateMutation.mutate({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      phoneNumber: data.phoneNumber,
-      secondaryEmail: data.secondaryEmail,
-    });
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>แก้ไขข้อมูลส่วนตัว (Update Profile)</DialogTitle>
+          <DialogTitle>{t.updateProfileTitle}</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            
-            {/* Read-only Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled className="bg-slate-100 text-slate-500" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled className="bg-slate-100 text-slate-500" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+        {isFetching ? (
+          <div className="flex justify-center items-center py-10">
+            <Loader2 className="h-10 w-10 animate-spin text-pink-500" />
+          </div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit((d) => updateMutation.mutate(d))} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField control={form.control} name="username" render={({ field }) => (
+                  <FormItem><FormLabel>{t.username}</FormLabel><Input {...field} disabled className="bg-slate-100" /></FormItem>
+                )} />
+                <FormField control={form.control} name="email" render={({ field }) => (
+                  <FormItem><FormLabel>{t.email}</FormLabel><Input {...field} disabled className="bg-slate-100" /></FormItem>
+                )} />
+              </div>
 
-            {/* Editable Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="ชื่อจริง" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="นามสกุล" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField control={form.control} name="firstName" render={({ field }) => (
+                  <FormItem><FormLabel>{t.firstName} *</FormLabel><Input {...field} /></FormItem>
+                )} />
+                <FormField control={form.control} name="lastName" render={({ field }) => (
+                  <FormItem><FormLabel>{t.lastName} *</FormLabel><Input {...field} /></FormItem>
+                )} />
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="เบอร์โทรศัพท์" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="secondaryEmail"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Secondary Email</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="อีเมลสำรอง (ถ้ามี)" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField control={form.control} name="phoneNumber" render={({ field }) => (
+                  <FormItem><FormLabel>{t.phoneNumber} *</FormLabel><Input {...field} /></FormItem>
+                )} />
+                <FormField control={form.control} name="secondaryEmail" render={({ field }) => (
+                  <FormItem><FormLabel>{t.secondaryEmail}</FormLabel><Input {...field} /></FormItem>
+                )} />
+              </div>
 
-            <DialogFooter className="pt-4 gap-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                ยกเลิก
-              </Button>
-              <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                บันทึกข้อมูล
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+              <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t.cancel}</Button>
+                <Button type="submit" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {t.save}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

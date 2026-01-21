@@ -6,15 +6,20 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useLanguage } from "@/providers/language-provider"; 
+
+import { 
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter 
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form"; // ✅ Import มาให้ครบ
+} from "@/components/ui/form"; 
 
 import { profileApi } from "../api/profile.api";
-import { changePasswordSchema, ChangePasswordSchemaType } from "../schema/profile.schema";
+// ✅ ใช้ Schema ภาษาอังกฤษที่เราสร้างไว้ (เปลี่ยนชื่อ field ให้ตรงกับ Schema)
+import { changePasswordSchema, ChangePasswordSchemaType } from "../schema/change-password.schema";
 
 interface ChangePasswordDialogProps {
   open: boolean;
@@ -22,66 +27,76 @@ interface ChangePasswordDialogProps {
 }
 
 export const ChangePasswordDialog = ({ open, onOpenChange }: ChangePasswordDialogProps) => {
+  const { t } = useLanguage();
+
   const form = useForm<ChangePasswordSchemaType>({
     resolver: zodResolver(changePasswordSchema),
-    defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
+    // ✅ ใช้ชื่อ field ตาม schema (oldPassword, newPassword, confirmPassword)
+    defaultValues: { oldPassword: "", newPassword: "", confirmPassword: "" },
   });
 
   const mutation = useMutation({
     mutationFn: profileApi.changePassword,
-    onSuccess: () => {
-      toast.success("เปลี่ยนรหัสผ่านสำเร็จ");
+    onSuccess: (response: any) => {
+      const data = response.data || response;
+      
+      // ✅ ดักจับ Error: ถ้าไม่ใช่ SUCCESS ให้ถือว่าเป็น Error
+      if (data && data.status !== "SUCCESS") {
+        toast.error(data.description || data.message || t.msgPasswordError);
+        return;
+      }
+
+      toast.success(t.msgPasswordSuccess);
       form.reset();
       onOpenChange(false);
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "ไม่สามารถเปลี่ยนรหัสผ่านได้");
+      console.error("Change Password Error:", error);
+      const msg = error?.response?.data?.message || error?.response?.data?.description || t.msgPasswordError;
+      toast.error(msg);
     },
   });
 
   const onSubmit = (data: ChangePasswordSchemaType) => {
-    mutation.mutate({ 
-        oldPassword: data.currentPassword, 
-        newPassword: data.newPassword 
-    });
+    // ✅ ส่ง data ไปตามโครงสร้างที่ Schema กำหนด (oldPassword, newPassword)
+    mutation.mutate(data);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>เปลี่ยนรหัสผ่าน (Change Password)</DialogTitle>
-          <DialogDescription>กรุณากรอกรหัสผ่านเดิมและรหัสผ่านใหม่เพื่อดำเนินการต่อ</DialogDescription>
+          <DialogTitle>{t.changePasswordTitle}</DialogTitle>
+          <DialogDescription>
+            {t.descChangePassword} 
+          </DialogDescription>
         </DialogHeader>
 
-        {/* ✅ ใช้ Form Wrapper ที่ถูกต้อง */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             
             <FormField
               control={form.control}
-              name="currentPassword"
+              name="oldPassword" // ✅ เปลี่ยนให้ตรงกับ Schema
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>รหัสผ่านปัจจุบัน</FormLabel>
+                  <FormLabel>{t.currentPassword}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input type="password" placeholder={t.currentPassword} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            <div className="h-[1px] bg-slate-100 my-1"></div>
-            
             <FormField
               control={form.control}
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>รหัสผ่านใหม่</FormLabel>
+                  <FormLabel>{t.newPassword}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input type="password" placeholder={t.newPassword} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -93,9 +108,9 @@ export const ChangePasswordDialog = ({ open, onOpenChange }: ChangePasswordDialo
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ยืนยันรหัสผ่านใหม่</FormLabel>
+                  <FormLabel>{t.confirmPassword}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input type="password" placeholder={t.confirmPassword} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -103,10 +118,12 @@ export const ChangePasswordDialog = ({ open, onOpenChange }: ChangePasswordDialo
             />
 
             <DialogFooter className="pt-4 gap-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>ยกเลิก</Button>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                {t.cancel}
+              </Button>
               <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                เปลี่ยนรหัสผ่าน
+                {t.save}
               </Button>
             </DialogFooter>
           </form>

@@ -5,6 +5,7 @@ import { User, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/providers/language-provider";
 import { authApi } from "@/modules/auth/api/auth.api";
+import { Toaster } from "@/components/ui/sonner";
 
 // Components
 import { ProfileDialog } from "@/modules/profile/components/profile-dialog";
@@ -12,7 +13,7 @@ import { ChangePasswordDialog } from "@/modules/profile/components/change-passwo
 import { MobileSidebar } from "@/components/layout/mobile-sidebar"; 
 
 export const Header = () => {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   
   // States
   const [isLangOpen, setIsLangOpen] = useState(false);
@@ -51,6 +52,21 @@ export const Header = () => {
         "flex items-center justify-between md:justify-end px-4 md:px-6"
     )}>
       
+      <Toaster 
+        position="top-center" 
+        richColors 
+        theme="light" 
+        toastOptions={{
+          classNames: {
+            toast: "shadow-2xl rounded-2xl border-none p-4",
+            error: "bg-[#FFF5F5] text-[#E53E3E] border border-[#FED7D7]",
+            success: "bg-[#F0FFF4] text-[#38A169] border border-[#C6F6D5]",
+            title: "font-bold text-[15px]",
+            description: "text-[13px]",
+          },
+        }}
+      />
+
       <MobileSidebar />
       <div className="flex items-center gap-2 md:gap-4">
         
@@ -64,9 +80,9 @@ export const Header = () => {
                 isLangOpen && "bg-slate-50 border-slate-200"
             )}
           >
-            <span className="font-bold text-slate-700 text-sm">{language === "EN" ? "US" : "TH"}</span>
+            <span className="font-bold text-slate-700 text-sm">{t.languageSub}</span>
             <span className="text-sm text-slate-600 font-medium hidden sm:inline">
-                {language === "EN" ? "English" : "ภาษาไทย"}
+                {t.languageName}
             </span>
             <ChevronDown size={16} className={cn("text-slate-400 transition-transform duration-200", isLangOpen && "rotate-180")} />
           </button>
@@ -117,12 +133,12 @@ export const Header = () => {
             {isProfileOpen && (
                 <div className="absolute top-full right-0 mt-2 w-[200px] bg-white rounded-xl shadow-lg border border-slate-100 py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
                     <div className="px-1 space-y-0.5">
-                        <MenuItem label="Profile" onClick={() => { setShowProfile(true); setIsProfileOpen(false); }} />
-                        <MenuItem label="Change Password" onClick={() => { setShowChangePwd(true); setIsProfileOpen(false); }} />
+                        <MenuItem label={t.menuProfile} onClick={() => { setShowProfile(true); setIsProfileOpen(false); }} />
+                        <MenuItem label={t.changePasswordTitle} onClick={() => { setShowChangePwd(true); setIsProfileOpen(false); }} />
                     </div>
                     <div className="h-[1px] bg-slate-100 my-2 mx-0"></div>
                     <div className="px-1">
-                        <MenuItem label="Logout" onClick={handleLogout} isDanger />
+                        <MenuItem label={t.menuLogout} onClick={handleLogout} isDanger />
                     </div>
                 </div>
             )}

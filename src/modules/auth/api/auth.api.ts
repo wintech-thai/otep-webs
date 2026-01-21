@@ -14,20 +14,15 @@ export const authApi = {
 
     if (status === "Success" || status === "OK") {
         const accessToken = token?.access_token;
-        // 🔥 1. ดึง Refresh Token ออกมา (ปกติ Onix จะส่งมาคู่กัน)
         const refreshToken = token?.refresh_token; 
 
         if (accessToken) {
-            // Set Access Token (อายุสั้น เช่น 1 วัน)
             Cookies.set("auth_token", accessToken, { expires: 1 });
             
-            // 🔥 2. Set Refresh Token (อายุนานกว่า เช่น 7 วัน)
-            // ตัวนี้สำคัญมาก! ถ้าไม่มีตัวนี้ Axios Interceptor จะไม่สามารถ Auto-Refresh ได้
             if (refreshToken) {
                 Cookies.set("refresh_token", refreshToken, { expires: 7 });
             }
             
-            // Manual Header Set (เพื่อให้ API ถัดไปใช้ได้ทันที)
             apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
             if (token?.userName) {
@@ -47,7 +42,6 @@ export const authApi = {
       ? { headers: { Authorization: `Bearer ${accessToken}` } }
       : {};
 
-    // ใช้ URL นี้ตามที่คุณยืนยันมาล่าสุด
     const response = await apiClient.get("/api/OnlyUser/org/temp/action/GetUserAllowedOrg", config); 
     return response.data; 
   },
@@ -58,12 +52,10 @@ export const authApi = {
        return apiClient.post(`/api/OnlyUser/org/${targetOrg}/action/Logout`);
     },
     clearCookies: async () => {
-       // ลบ Header
        delete apiClient.defaults.headers.common['Authorization'];
        
-       // ลบ Cookie ฝั่ง Client ด้วยเพื่อความชัวร์ (นอกเหนือจากที่ View ทำ)
        Cookies.remove("auth_token");
-       Cookies.remove("refresh_token"); // 🔥 ลบ Refresh Token ด้วย
+       Cookies.remove("refresh_token");
        
        return axios.post("/api/auth/logout");
     }
