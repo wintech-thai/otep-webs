@@ -45,9 +45,14 @@ export const Header = () => {
     window.location.replace("/login");
   };
 
+  const isAnyModalOpen = showProfile || showChangePwd;
+
   return (
     <header className={cn(
-        "h-16 bg-white border-b border-slate-100 fixed top-0 right-0 z-20 transition-all duration-200",
+        "h-16 bg-white border-b border-slate-100 fixed top-0 right-0 transition-all duration-200",
+        
+        isAnyModalOpen ? "z-10" : "z-[100]", 
+        
         "w-full md:w-[calc(100%-260px)]", 
         "flex items-center justify-between md:justify-end px-4 md:px-6"
     )}>
@@ -77,6 +82,7 @@ export const Header = () => {
             className={cn(
                 "flex items-center gap-2 px-2 py-1.5 md:px-3 rounded-lg transition-all border border-transparent",
                 "hover:bg-slate-50 hover:border-slate-200",
+                "active:scale-95",
                 isLangOpen && "bg-slate-50 border-slate-200"
             )}
           >
@@ -117,6 +123,7 @@ export const Header = () => {
                 className={cn(
                     "flex items-center gap-2 p-1 pr-1 md:pr-2 rounded-full transition-all outline-none border border-transparent",
                     "hover:bg-slate-50 hover:border-slate-200",
+                    "active:scale-95",
                     isProfileOpen && "bg-slate-50 border-slate-200"
                 )}
             >
@@ -129,15 +136,16 @@ export const Header = () => {
                 <ChevronDown size={14} className={cn("text-slate-400 transition-transform duration-200", isProfileOpen && "rotate-180")} />
             </button>
 
-            {/* เมนู Profile Dropdown */}
             {isProfileOpen && (
-                <div className="absolute top-full right-0 mt-2 w-[200px] bg-white rounded-xl shadow-lg border border-slate-100 py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
-                    <div className="px-1 space-y-0.5">
+                <div className="absolute top-full right-0 mt-2 w-[220px] bg-white rounded-xl shadow-lg border border-slate-100 p-2 animate-in fade-in zoom-in-95 duration-200 z-50">
+                    <div className="flex flex-col gap-1">
                         <MenuItem label={t.menuProfile} onClick={() => { setShowProfile(true); setIsProfileOpen(false); }} />
                         <MenuItem label={t.changePasswordTitle} onClick={() => { setShowChangePwd(true); setIsProfileOpen(false); }} />
                     </div>
-                    <div className="h-[1px] bg-slate-100 my-2 mx-0"></div>
-                    <div className="px-1">
+                    
+                    <div className="h-[1px] bg-slate-100 my-2 mx-1"></div>
+                    
+                    <div>
                         <MenuItem label={t.menuLogout} onClick={handleLogout} isDanger />
                     </div>
                 </div>
@@ -171,7 +179,16 @@ const LanguageItem = ({ code, label, subLabel, isActive, onClick }: LanguageItem
 );
 
 const MenuItem = ({ label, onClick, isDanger }: { label: string, onClick: () => void, isDanger?: boolean }) => (
-    <button onClick={onClick} className={cn("w-full text-left px-4 py-2 text-[14px] transition-colors rounded-lg mx-auto block w-[96%]", isDanger ? "text-red-600 hover:bg-red-50 font-medium" : "text-slate-700 hover:bg-slate-50 font-medium")}>
+    <button 
+        onClick={onClick} 
+        className={cn(
+            "w-full text-left px-3 py-2 text-[14px] transition-all rounded-lg",
+            "flex items-center gap-2", 
+            isDanger 
+                ? "text-red-600 bg-red-50/50 hover:bg-red-50 font-medium" 
+                : "text-slate-700 hover:bg-slate-50 font-medium"
+        )}
+    >
         {label}
     </button>
 );

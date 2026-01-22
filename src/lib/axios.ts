@@ -17,7 +17,7 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = Cookies.get("auth_token");
     if (token && !config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${toBase64(token)}`;
     }
     return config;
   },
@@ -35,7 +35,6 @@ apiClient.interceptors.response.use(
       try {
         const refreshToken = Cookies.get("refresh_token");
         const currentOrg = localStorage.getItem("current_org") || "temp";
-        
         const targetOrg = currentOrg === "default" ? "temp" : currentOrg;
 
         // เรียก Refresh API
@@ -48,8 +47,9 @@ apiClient.interceptors.response.use(
         if (newToken) {
           Cookies.set("auth_token", newToken);
           
-          apiClient.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
-          originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+          const bearer = `Bearer ${toBase64(newToken)}`;
+          apiClient.defaults.headers.common["Authorization"] = bearer;
+          originalRequest.headers["Authorization"] = bearer;
           
           return apiClient(originalRequest);
         }

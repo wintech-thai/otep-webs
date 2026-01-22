@@ -19,8 +19,6 @@ export const Sidebar = () => {
   const { t } = useLanguage();
 
   return (
-    // ✅ แก้ไข: ลบ hidden, md:flex, fixed และ w-[260px] ออกจากตรงนี้
-    // ใช้ h-full และ w-full เพื่อให้มันขยายเต็มพื้นที่ตัวที่มาหุ้มมัน (Container)
     <div className="flex flex-col h-full w-full bg-white border-r border-slate-100">
       {/* 1. Sidebar Header (Logo) */}
       <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-50/50">
@@ -56,7 +54,6 @@ export const Sidebar = () => {
                 {isAdminOpen ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronRight size={16} className="text-slate-400" />}
             </button>
 
-            {/* Sub-menu (เมนูย่อย) */}
             {isAdminOpen && (
                 <div className="mt-1 ml-4 pl-4 space-y-1 border-l border-slate-100">
                     
@@ -84,13 +81,14 @@ export const Sidebar = () => {
                         />
                     </Link>
 
-                    <Link href="/dashboard/administration/audit-log">
+                    {/* ซ่อน Audit Log */}
+                    {/* <Link href="/dashboard/administration/audit-log">
                         <SidebarItem 
                             label={t.auditLog} 
                             isSubmenu
                             active={pathname === "/dashboard/administration/audit-log"} 
                         />
-                    </Link>
+                    </Link> */}
 
                 </div>
             )}
