@@ -19,10 +19,30 @@
   --color-input: #f8fafc;
 }
 
+/* ✅ ส่วนที่เพิ่ม: ป้องกัน Layout Shift และอาการกระพริบตอนเปิด Modal */
 @layer base {
+  html {
+    /* จองพื้นที่ scrollbar ไว้เสมอ หน้าจะไม่กระโดดขยับไปทางขวาตอนเปิด Dialog */
+    scrollbar-gutter: stable;
+    /* ปรับปรุงความลื่นไหลของการเลื่อนหน้าจอ */
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: #fafafa; 
     color: #1e293b;
+    /* ป้องกันการกระตุกเมื่อ Radix UI พยายามฉีดสไตล์ padding-right */
+    padding-right: 0px !important;
+  }
+
+  /* บังคับปิด Padding ที่ Radix/Shadcn ฉีดเข้ามาตอนล็อก Scroll */
+  body[data-scroll-locked] {
+    padding-right: 0px !important;
+    width: 100% !important;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
   }
 }
 
@@ -134,15 +154,6 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
 }
 
 @layer utilities {

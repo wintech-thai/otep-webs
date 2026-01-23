@@ -61,13 +61,13 @@ export const userApi = {
   },
 
   getAvailableRoles: async (orgId: string) => {
-    return new Promise((resolve) => {
+    return new Promise<IUserRole[]>((resolve) => {
       resolve([
         { roleId: "OWNER", roleName: "OWNER", roleDescription: "Organization Owner" },
         { roleId: "EDITOR", roleName: "EDITOR", roleDescription: "Organization Editor" },
         { roleId: "UPLOADER", roleName: "UPLOADER", roleDescription: "Organization File Uploader" },
         { roleId: "VIEWER", roleName: "VIEWER", roleDescription: "Organization Viewer" }
-      ] as IUserRole[]);
+      ]);
     });
   },
 
@@ -78,12 +78,6 @@ export const userApi = {
     );
   },
 
-  updateUser: async (orgId: string, userId: string, data: UserSchemaType) => {
-    return apiClient.post(
-      `/api/OrganizationUser/org/${orgId}/action/UpdateUser`,
-      { ...data, userId }
-    );
-  },
 
   deleteUser: async (orgId: string, userId: string) => {
     return apiClient.delete(
@@ -103,9 +97,4 @@ export const userApi = {
     );
   },
   
-  getUserById: async (orgId: string, userId: string) => {
-    return apiClient.get<IUser>(
-      `/api/OrganizationUser/org/${orgId}/action/GetUserById/${userId}`
-    );
-  }
 };
