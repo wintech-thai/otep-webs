@@ -24,7 +24,7 @@ export const dictionary = {
     statActiveSessions: "Active Sessions",
     statAuditLogs: "Audit Logs",
 
-    // --- Common (ใช้ร่วมกันทุกหน้า) ---
+    // --- Common ---
     fullTextSearch: "Full Text Search",
     search: "Search",
     add: "ADD",
@@ -35,62 +35,93 @@ export const dictionary = {
     description: "Description",
     tags: "Tags",
     role: "Role",
-    
-    // เพิ่มส่วน Common Buttons
     save: "Save",
     cancel: "Cancel",
     confirm: "Confirm",
+    ok: "OK",
+    done: "Done",
     loading: "Loading...",
+    copied: "COPIED",
+    copyLink: "COPY LINK",
 
-    // --- Custom Role Page ---
+    // --- Custom Role Page & Form ---
     roleName: "Role Name",
     searchRolePlaceholder: "Search role permissions...",
+    createRole: "Create Custom Role",
+    roleInformation: "Role Information",
+    enterRoleName: "Enter role name",
+    enterDescription: "Enter description",
+    tagPlaceholder: "Type and press Enter to add tag",
+    permissions: "Permissions",
+    searchPermissions: "Search permissions...",
+    noPermissionsFound: "No permissions found",
 
-    // --- API Keys Page ---
+    // --- User Form Page ---
+    addUser: "Create New User",
+    userInformation: "User Information",
+    phUsername: "Enter username",
+    selectCustomRole: "Select Custom Role",
+    phSelectCustomRole: "Select custom role...",
+    systemRoles: "System Roles",
+    availableRoles: "Available Roles",
+    selectedRoles: "Selected Roles",
+    noRolesFound: "No roles found",
+    noRolesSelected: "No roles selected",
+    inviteSuccessTitle: "User Invited Successfully",
+    inviteSuccessDesc: "Please copy the registration link below and send it to the user manually.",
+
+    // --- Leave Modal ---
+    leavePageTitle: "Leave Page",
+    leavePageDescription: "You have unsaved changes. Are you sure you want to leave without saving?",
+
+    // --- Messages (Toasts) ---
+    msgRoleSuccess: "Custom role created successfully",
+    msgRoleError: "Failed to create role",
+    msgPermissionError: "Failed to load permissions",
+    msgRoleFetchError: "Failed to load roles data",
+    msgInviteSuccess: "User invited successfully",
+    msgOperationFailed: "Operation failed",
+    msgUrlCopied: "URL copied",
+    msgProfileSuccess: "Profile updated successfully",
+    msgProfileError: "Failed to save profile data",
+    msgPasswordSuccess: "Password changed successfully",
+    msgPasswordError: "Failed to change password",
+
+    // --- Profile & Change Password ---
+    updateProfileTitle: "Update Profile",
+    firstName: "First Name",
+    lastName: "Last Name",
+    phoneNumber: "Phone Number",
+    secondaryEmail: "Secondary Email",
+    phFirstName: "First Name",
+    phLastName: "Last Name",
+    phPhone: "e.g. 66812345678",
+    phSecondaryEmail: "Backup Email (Optional)",
+    menuProfile: "Profile",
+    menuLogout: "Logout",
+    
+    changePasswordTitle: "Change Password",
+    changePasswordDesc: "Please update your password to continue.",
+    descChangePassword: "Please update your password to continue.", // ✅ ป้องกัน Error Property not exist
+    currentPassword: "Current Password",
+    newPassword: "New Password",
+    confirmPassword: "Confirm New Password",
+
+    // --- Other Pages ---
     keyName: "Key Name",
     customRoleTh: "Custom Role",
     rolesTh: "Roles",
     searchApiKeyPlaceholder: "Search API keys...",
-
-    // --- Users Page ---
     username: "Username",
     email: "Email",
     initialUser: "Initial User",
     searchUserPlaceholder: "Search users...",
-
-    // --- Audit Log Page ---
     time: "Time",
     idType: "Id Type",
     api: "API",
     ipAddress: "IP Address",
     searchValuePlaceholder: "Search Value",
     dateRangePlaceholder: "Select Date Range",
-
-    changePasswordTitle: "Change Password",
-    changePasswordDesc: "Please update your password to continue.",
-    currentPassword: "Current Password",
-    newPassword: "New Password",
-    confirmPassword: "Confirm New Password",
-    msgPasswordSuccess: "Password changed successfully",
-    msgPasswordError: "Failed to change password",
-    descChangePassword: "Please update your password to continue.", 
-
-    updateProfileTitle: "Update Profile",
-    firstName: "First Name",
-    lastName: "Last Name",
-    phoneNumber: "Phone Number",
-    secondaryEmail: "Secondary Email",
-    msgProfileSuccess: "Profile updated successfully",
-    msgProfileError: "Failed to save profile data",
-    
-    // Placeholders
-    phFirstName: "First Name",
-    phLastName: "Last Name",
-    phPhone: "e.g. 66812345678",
-    phSecondaryEmail: "Backup Email (Optional)",
-
-    menuProfile: "Profile",
-    menuLogout: "Logout",
   },
   TH: {
     // --- Layout (Sidebar & Header) ---
@@ -126,61 +157,92 @@ export const dictionary = {
     description: "คำอธิบาย",
     tags: "แท็ก",
     role: "บทบาท",
-
-    // Common Buttons
     save: "บันทึก",
     cancel: "ยกเลิก",
     confirm: "ยืนยัน",
+    ok: "ตกลง",
+    done: "เสร็จสิ้น",
     loading: "กำลังโหลด...",
+    copied: "คัดลอกแล้ว",
+    copyLink: "คัดลอกลิงก์",
 
-    // --- Custom Role Page ---
+    // --- Custom Role Page & Form ---
     roleName: "ชื่อบทบาท",
     searchRolePlaceholder: "ค้นหาสิทธิ์การใช้งาน...",
+    createRole: "สร้างบทบาทใหม่",
+    roleInformation: "ข้อมูลบทบาท",
+    enterRoleName: "กรอกชื่อบทบาท",
+    enterDescription: "กรอกคำอธิบาย",
+    tagPlaceholder: "พิมพ์แล้วกด Enter เพื่อเพิ่มแท็ก",
+    permissions: "สิทธิ์การใช้งาน",
+    searchPermissions: "ค้นหาสิทธิ์การใช้งาน...",
+    noPermissionsFound: "ไม่พบข้อมูลสิทธิ์",
 
-    // --- API Keys Page ---
+    // --- User Form Page ---
+    addUser: "สร้างผู้ใช้งานใหม่",
+    userInformation: "ข้อมูลผู้ใช้งาน",
+    phUsername: "กรอกชื่อผู้ใช้",
+    selectCustomRole: "เลือกบทบาทกำหนดเอง",
+    phSelectCustomRole: "เลือกบทบาทกำหนดเอง...",
+    systemRoles: "บทบาทมาตรฐาน",
+    availableRoles: "บทบาทที่มีให้เลือก",
+    selectedRoles: "บทบาทที่เลือกแล้ว",
+    noRolesFound: "ไม่พบบทบาท",
+    noRolesSelected: "ยังไม่ได้เลือกบทบาท",
+    inviteSuccessTitle: "ส่งคำเชิญสำเร็จ",
+    inviteSuccessDesc: "โปรดคัดลอกลิงก์ด้านล่างและส่งให้ผู้ใช้งานด้วยตนเอง",
+
+    // --- Leave Modal ---
+    leavePageTitle: "ออกจากหน้านี้?",
+    leavePageDescription: "คุณยังไม่ได้บันทึกการเปลี่ยนแปลง ต้องการออกจากหน้านี้โดยไม่บันทึกใช่หรือไม่?",
+
+    // --- Messages (Toasts) ---
+    msgRoleSuccess: "สร้างบทบาทสำเร็จแล้ว",
+    msgRoleError: "ไม่สามารถสร้างบทบาทได้",
+    msgPermissionError: "โหลดข้อมูลสิทธิ์ไม่สำเร็จ",
+    msgRoleFetchError: "ไม่สามารถโหลดข้อมูลบทบาทได้",
+    msgInviteSuccess: "ส่งคำเชิญสำเร็จแล้ว",
+    msgOperationFailed: "การดำเนินการล้มเหลว",
+    msgUrlCopied: "คัดลอกลิงก์แล้ว",
+    msgProfileSuccess: "บันทึกข้อมูลสำเร็จ",
+    msgProfileError: "บันทึกข้อมูลไม่สำเร็จ",
+    msgPasswordSuccess: "เปลี่ยนรหัสผ่านสำเร็จ",
+    msgPasswordError: "เปลี่ยนรหัสผ่านไม่สำเร็จ",
+
+    // --- Profile & Change Password ---
+    updateProfileTitle: "แก้ไขข้อมูลส่วนตัว",
+    firstName: "ชื่อจริง",
+    lastName: "นามสกุล",
+    phoneNumber: "เบอร์โทรศัพท์",
+    secondaryEmail: "อีเมลสำรอง",
+    phFirstName: "ชื่อจริง",
+    phLastName: "นามสกุล",
+    phPhone: "เช่น 66812345678",
+    phSecondaryEmail: "อีเมลสำรอง (ถ้ามี)",
+    menuProfile: "ข้อมูลส่วนตัว",
+    menuLogout: "ออกจากระบบ",
+    
+    changePasswordTitle: "เปลี่ยนรหัสผ่าน",
+    changePasswordDesc: "กรุณากรอกรหัสผ่านใหม่เพื่อดำเนินการต่อ",
+    descChangePassword: "กรุณากรอกรหัสผ่านใหม่เพื่อดำเนินการต่อ", // ✅ ป้องกัน Error Property not exist
+    currentPassword: "รหัสผ่านปัจจุบัน",
+    newPassword: "รหัสผ่านใหม่",
+    confirmPassword: "ยืนยันรหัสผ่านใหม่",
+
+    // --- Other Pages ---
     keyName: "ชื่อคีย์",
     customRoleTh: "สิทธิ์กำหนดเอง",
     rolesTh: "บทบาท",
     searchApiKeyPlaceholder: "ค้นหาคีย์ API...",
-
-    // --- Users Page ---
     username: "ชื่อผู้ใช้",
     email: "อีเมล",
     initialUser: "ผู้ใช้เริ่มต้น",
     searchUserPlaceholder: "ค้นหาผู้ใช้งาน...",
-
-    // --- Audit Log Page ---
     time: "เวลา",
     idType: "ประเภท ID",
     api: "API",
     ipAddress: "ที่อยู่ IP",
     searchValuePlaceholder: "ค้นหาค่า...",
     dateRangePlaceholder: "เลือกช่วงเวลา",
-
-    changePasswordTitle: "เปลี่ยนรหัสผ่าน",
-    changePasswordDesc: "กรุณากรอกรหัสผ่านใหม่เพื่อดำเนินการต่อ",
-    currentPassword: "รหัสผ่านปัจจุบัน",
-    newPassword: "รหัสผ่านใหม่",
-    confirmPassword: "ยืนยันรหัสผ่านใหม่",
-    msgPasswordSuccess: "เปลี่ยนรหัสผ่านสำเร็จ",
-    msgPasswordError: "เปลี่ยนรหัสผ่านไม่สำเร็จ",
-    descChangePassword: "กรุณากรอกรหัสผ่านใหม่เพื่อดำเนินการต่อ",
-
-    updateProfileTitle: "แก้ไขข้อมูลส่วนตัว",
-    firstName: "ชื่อจริง",
-    lastName: "นามสกุล",
-    phoneNumber: "เบอร์โทรศัพท์",
-    secondaryEmail: "อีเมลสำรอง",
-    msgProfileSuccess: "บันทึกข้อมูลสำเร็จ",
-    msgProfileError: "บันทึกข้อมูลไม่สำเร็จ",
-
-    // Placeholders
-    phFirstName: "ชื่อจริง",
-    phLastName: "นามสกุล",
-    phPhone: "เช่น 66812345678",
-    phSecondaryEmail: "อีเมลสำรอง (ถ้ามี)",
-
-    menuProfile: "ข้อมูลส่วนตัว",
-    menuLogout: "ออกจากระบบ",
   }
 };

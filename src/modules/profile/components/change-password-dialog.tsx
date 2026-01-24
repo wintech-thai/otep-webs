@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/form"; 
 
 import { profileApi } from "../api/profile.api";
-// ✅ ใช้ Schema ภาษาอังกฤษที่เราสร้างไว้ (เปลี่ยนชื่อ field ให้ตรงกับ Schema)
 import { changePasswordSchema, ChangePasswordSchemaType } from "../schema/change-password.schema";
 
 interface ChangePasswordDialogProps {
@@ -31,7 +30,6 @@ export const ChangePasswordDialog = ({ open, onOpenChange }: ChangePasswordDialo
 
   const form = useForm<ChangePasswordSchemaType>({
     resolver: zodResolver(changePasswordSchema),
-    // ✅ ใช้ชื่อ field ตาม schema (oldPassword, newPassword, confirmPassword)
     defaultValues: { oldPassword: "", newPassword: "", confirmPassword: "" },
   });
 
@@ -40,7 +38,6 @@ export const ChangePasswordDialog = ({ open, onOpenChange }: ChangePasswordDialo
     onSuccess: (response: any) => {
       const data = response.data || response;
       
-      // ✅ ดักจับ Error: ถ้าไม่ใช่ SUCCESS ให้ถือว่าเป็น Error
       if (data && data.status !== "SUCCESS") {
         toast.error(data.description || data.message || t.msgPasswordError);
         return;
@@ -58,7 +55,6 @@ export const ChangePasswordDialog = ({ open, onOpenChange }: ChangePasswordDialo
   });
 
   const onSubmit = (data: ChangePasswordSchemaType) => {
-    // ✅ ส่ง data ไปตามโครงสร้างที่ Schema กำหนด (oldPassword, newPassword)
     mutation.mutate(data);
   };
 
@@ -77,7 +73,7 @@ export const ChangePasswordDialog = ({ open, onOpenChange }: ChangePasswordDialo
             
             <FormField
               control={form.control}
-              name="oldPassword" // ✅ เปลี่ยนให้ตรงกับ Schema
+              name="oldPassword" 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t.currentPassword}</FormLabel>

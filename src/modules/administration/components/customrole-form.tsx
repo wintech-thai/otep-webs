@@ -14,7 +14,6 @@ import { customRoleSchema, CustomRoleSchemaType } from "../schema/custom-role.sc
 import { customRoleApi } from "../api/custom-role.api"; 
 import { useLanguage } from "@/providers/language-provider";
 
-// Interface สำหรับ Permission Group
 interface IApiPermission {
   controllerName: string;
   apiName: string;
@@ -44,15 +43,9 @@ export const CustomRoleForm = () => {
 
   const form = useForm<CustomRoleSchemaType>({
     resolver: zodResolver(customRoleSchema),
-    defaultValues: {
-      roleName: "",
-      roleDescription: "",
-      tags: "",
-      permissionIds: [],
-    },
+    defaultValues: { roleName: "", roleDescription: "", tags: "", permissionIds: [] },
   });
 
-  // ✅ ดึง isSubmitted มาใช้ควบคุมจังหวะการแสดง Error
   const { errors, isSubmitted, isDirty } = form.formState;
 
   const getPermissionId = (controller: string, apiName: string) => `${controller}:${apiName}`;
@@ -66,39 +59,28 @@ export const CustomRoleForm = () => {
         const res: any = await customRoleApi.getInitialPermissions(orgId);
         
         let rawGroups: IPermissionGroup[] = [];
-        if (res?.permissions && Array.isArray(res.permissions)) {
-            rawGroups = res.permissions;
-        } else if (res?.data?.permissions && Array.isArray(res.data.permissions)) {
-            rawGroups = res.data.permissions;
-        } else if (Array.isArray(res)) {
-            rawGroups = res;
-        }
+        if (res?.permissions && Array.isArray(res.permissions)) rawGroups = res.permissions;
+        else if (res?.data?.permissions && Array.isArray(res.data.permissions)) rawGroups = res.data.permissions;
+        else if (Array.isArray(res)) rawGroups = res;
 
         if (rawGroups.length > 0) {
-            const sorted = rawGroups.sort((a, b) => 
-                (a.controllerName || "").localeCompare(b.controllerName || "")
-            );
+            const sorted = rawGroups.sort((a, b) => (a.controllerName || "").localeCompare(b.controllerName || ""));
             setPermissionGroups(sorted);
             const allGroupNames = new Set(sorted.map(g => g.controllerName));
             setExpandedGroups(allGroupNames);
         }
       } catch (error) {
-        console.error(error);
-        toast.error("Failed to load permissions");
+        toast.error(t.msgPermissionError || "Failed to load permissions");
       } finally {
         setIsFetching(false);
       }
     };
     fetchPermissions();
-  }, []);
+  }, [t.msgPermissionError]);
 
   // --- 2. Sync Tags ---
   useEffect(() => {
-    // ✅ แก้ไข: ให้ validate เฉพาะตอนที่เคยกด Submit ไปแล้ว เพื่อไม่ให้ Error แดงตอนโหลดหน้า
-    form.setValue("tags", tagsList.join(","), { 
-        shouldValidate: isSubmitted,
-        shouldDirty: true 
-    });
+    form.setValue("tags", tagsList.join(","), { shouldValidate: isSubmitted, shouldDirty: true });
   }, [tagsList, form, isSubmitted]);
 
   const addTag = (val: string) => {
@@ -115,9 +97,7 @@ export const CustomRoleForm = () => {
     const lowerSearch = permissionSearch.toLowerCase();
     return permissionGroups.map(group => {
         const groupMatches = group.controllerName.toLowerCase().includes(lowerSearch);
-        const matchingChildren = group.apiPermissions.filter(p => 
-            p.apiName.toLowerCase().includes(lowerSearch)
-        );
+        const matchingChildren = group.apiPermissions.filter(p => p.apiName.toLowerCase().includes(lowerSearch));
         if (groupMatches) return group; 
         if (matchingChildren.length > 0) return { ...group, apiPermissions: matchingChildren };
         return null;
@@ -129,11 +109,8 @@ export const CustomRoleForm = () => {
     const newSet = new Set(selectedPermissionIds);
     const idsInGroup = group.apiPermissions.map(p => getPermissionId(group.controllerName, p.apiName));
     const allSelected = idsInGroup.every(id => newSet.has(id));
-    if (allSelected) {
-        idsInGroup.forEach(id => newSet.delete(id));
-    } else {
-        idsInGroup.forEach(id => newSet.add(id));
-    }
+    if (allSelected) idsInGroup.forEach(id => newSet.delete(id));
+    else idsInGroup.forEach(id => newSet.add(id));
     setSelectedPermissionIds(newSet);
     form.setValue("permissionIds", Array.from(newSet));
   };
@@ -163,11 +140,10 @@ export const CustomRoleForm = () => {
             permissionIds: Array.from(selectedPermissionIds)
         };
         await customRoleApi.addCustomRole(orgId, payload);
-        toast.success("Custom role created successfully");
+        toast.success(t.msgRoleSuccess || "Custom role created successfully");
         router.back();
     } catch (error) {
-        console.error(error);
-        toast.error("Failed to create role");
+        toast.error(t.msgRoleError || "Failed to create role");
     } finally {
         setIsLoading(false);
     }
@@ -181,7 +157,7 @@ export const CustomRoleForm = () => {
   if (isFetching) return <div className="h-full flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-pink-500" /></div>;
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden relative">
+    <div className="flex-col h-full bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden relative flex">
       
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white shrink-0 z-10">
@@ -198,57 +174,41 @@ export const CustomRoleForm = () => {
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/30 no-scrollbar">
         <form className="space-y-6 w-full mx-auto">
-            
             <div className="bg-white p-6 border border-slate-200 rounded-xl space-y-4 shadow-sm">
                 <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">
                     {t.roleInformation || "Role Information"}
                 </h3>
                 
                 <div className="grid md:grid-cols-2 gap-6">
-                    {/* Role Name */}
                     <div className="space-y-2">
                         <label className="text-[15px] font-semibold text-slate-700 ml-1">
                             {t.roleName || "Role Name"} <span className="text-red-500">*</span>
                         </label>
                         <input 
                             {...form.register("roleName")}
-                            className={`w-full border rounded-lg px-3 py-2.5 text-[15px] outline-none transition-all focus:ring-2 ${
-                                errors.roleName 
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-100" 
-                                : "border-slate-300 focus:border-pink-400 focus:ring-pink-200"
-                            }`}
-                            placeholder="Enter role name"
+                            className={`w-full border rounded-lg px-3 py-2.5 text-[15px] outline-none transition-all focus:ring-2 ${errors.roleName ? "border-red-500 focus:ring-red-100" : "border-slate-300 focus:border-pink-400 focus:ring-pink-200"}`}
+                            placeholder={t.enterRoleName || "Enter role name"} 
                         />
                         {errors.roleName && <span className="text-xs text-red-500">{errors.roleName.message}</span>}
                     </div>
 
-                    {/* Description */}
                     <div className="space-y-2">
                         <label className="text-[15px] font-semibold text-slate-700 ml-1">
                             {t.description || "Description"} <span className="text-red-500">*</span>
                         </label>
                         <input 
                             {...form.register("roleDescription")}
-                            className={`w-full border rounded-lg px-3 py-2.5 text-[15px] outline-none transition-all focus:ring-2 ${
-                                errors.roleDescription 
-                                ? "border-red-500 focus:border-red-500 focus:ring-red-100" 
-                                : "border-slate-300 focus:border-pink-400 focus:ring-pink-200"
-                            }`}
-                            placeholder="Enter description"
+                            className={`w-full border rounded-lg px-3 py-2.5 text-[15px] outline-none transition-all focus:ring-2 ${errors.roleDescription ? "border-red-500 focus:ring-red-100" : "border-slate-300 focus:border-pink-400 focus:ring-pink-200"}`}
+                            placeholder={t.enterDescription || "Enter description"}
                         />
                         {errors.roleDescription && <span className="text-xs text-red-500">{errors.roleDescription.message}</span>}
                     </div>
 
-                    {/* Tags */}
                     <div className="space-y-2 md:col-span-2">
                         <label className="text-[15px] font-semibold text-slate-700 ml-1">
                             {t.tags || "Tags"} <span className="text-red-500">*</span>
                         </label>
-                        <div className={`w-full border rounded-lg px-2 py-1.5 min-h-[42px] flex flex-wrap gap-2 items-center bg-white transition-all focus-within:ring-2 ${
-                            errors.tags 
-                            ? "border-red-500 focus-within:ring-red-100 focus-within:border-red-500" 
-                            : "border-slate-300 focus-within:ring-pink-200 focus-within:border-pink-400"
-                        }`}>
+                        <div className={`w-full border rounded-lg px-2 py-1.5 min-h-[42px] flex flex-wrap gap-2 items-center bg-white transition-all focus-within:ring-2 ${errors.tags ? "border-red-500 focus-within:ring-red-100" : "border-slate-300 focus-within:ring-pink-200 focus-within:border-pink-400"}`}>
                             {tagsList.map((tag, index) => (
                                 <span key={index} className="inline-flex items-center gap-1 px-2 py-1 bg-pink-50 text-pink-600 text-xs font-bold rounded-md border border-pink-100">
                                     {tag}
@@ -259,8 +219,7 @@ export const CustomRoleForm = () => {
                                 value={tagInput} onChange={(e) => setTagInput(e.target.value)}
                                 onKeyDown={(e) => { if(e.key === "Enter") { e.preventDefault(); addTag(tagInput); } }}
                                 onBlur={() => { if(tagInput.trim()) addTag(tagInput); }}
-                                // ✅ เพิ่ม Placeholder
-                                placeholder={tagsList.length === 0 ? "Type and press Enter to add tag" : ""}
+                                placeholder={tagsList.length === 0 ? t.tagPlaceholder || "Type and press Enter to add tag" : ""}
                                 className="flex-1 bg-transparent outline-none text-[15px] min-w-[120px] h-full py-1"
                             />
                         </div>
@@ -269,7 +228,7 @@ export const CustomRoleForm = () => {
                 </div>
             </div>
 
-            {/* 2. Permissions Card */}
+            {/* Permissions Card */}
             <div className="bg-white p-6 border border-slate-200 rounded-xl space-y-4 shadow-sm">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-4">
                     <h3 className="text-lg font-bold text-slate-800">{t.permissions || "Permissions"}</h3>
@@ -281,14 +240,14 @@ export const CustomRoleForm = () => {
                         type="text" 
                         value={permissionSearch} 
                         onChange={(e) => setPermissionSearch(e.target.value)}
-                        placeholder="Search permissions..."
+                        placeholder={t.searchPermissions || "Search permissions..."}
                         className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-[15px] outline-none focus:ring-2 focus:ring-pink-200 focus:border-pink-400 transition-all"
                     />
                 </div>
 
                 <div className="border border-slate-200 rounded-lg overflow-hidden">
                     {filteredGroups.length === 0 ? (
-                        <div className="p-10 text-center text-slate-400 text-[15px]">No permissions found</div>
+                        <div className="p-10 text-center text-slate-400 text-[15px]">{t.noPermissionsFound || "No permissions found"}</div>
                     ) : (
                         filteredGroups.map((group) => {
                             const idsInGroup = group.apiPermissions.map(p => getPermissionId(group.controllerName, p.apiName));
@@ -335,18 +294,29 @@ export const CustomRoleForm = () => {
         </button>
       </div>
 
-      {/* Leave Modal */}
       {showLeaveModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 p-6 space-y-6">
-               <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center"><AlertTriangle className="text-amber-500 w-6 h-6" /></div>
-                  <h3 className="font-bold text-xl text-slate-800">Leave Page</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">You have unsaved changes. Are you sure you want to leave without saving?</p>
-               </div>
-               <div className="flex gap-3 pt-2">
-                 <button onClick={() => setShowLeaveModal(false)} className="flex-1 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all">Cancel</button>
-                 <button onClick={() => router.back()} className="flex-1 py-2.5 text-sm font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-md transition-all active:scale-95">OK</button>
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-[400px] relative overflow-hidden animate-in zoom-in-95 duration-200 border-none">
+               <button onClick={() => setShowLeaveModal(false)} className="absolute right-4 top-4 p-1 rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                  <X size={18} />
+               </button>
+               <div className="p-6">
+                  <div className="text-left pr-6">
+                    <h3 className="text-xl font-bold text-slate-900 leading-none">
+                        {t.leavePageTitle || "Leave Page"}
+                    </h3>
+                    <p className="text-slate-500 text-sm mt-3 leading-relaxed">
+                        {t.leavePageDescription || "You have unsaved changes. Are you sure you want to leave without saving?"}
+                    </p>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-8">
+                    <button onClick={() => setShowLeaveModal(false)} className="h-10 px-6 rounded-lg font-bold bg-slate-100 border-none hover:bg-slate-200 text-slate-700 text-sm transition-all">
+                        {t.cancel || "Cancel"}
+                    </button>
+                    <button onClick={() => router.back()} className="h-10 px-8 rounded-lg font-bold bg-red-600 hover:bg-red-700 text-white text-sm shadow-md active:scale-95">
+                        {t.confirm || t.ok || "OK"}
+                    </button>
+                  </div>
                </div>
             </div>
         </div>
